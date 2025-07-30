@@ -3,20 +3,21 @@
 // Global variables
 let interactiveMap, heatmapMap;
 let projectData = null;
+let projectTypeChart, subcountyChart;
 
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     initializeMaps();
-    addScrollAnimations();
     loadProjectData();
+    setupEventListeners();
 });
 
 // Initialize Chart.js charts
 function initializeCharts() {
     // Project Type Distribution Chart
     const projectTypeCtx = document.getElementById('projectTypeChart').getContext('2d');
-    const projectTypeChart = new Chart(projectTypeCtx, {
+    projectTypeChart = new Chart(projectTypeCtx, {
         type: 'doughnut',
         data: {
             labels: ['Boreholes', 'Water Pans', 'Protected Springs', 'Water Supply Systems', 'Other'],
@@ -63,7 +64,7 @@ function initializeCharts() {
 
     // Projects by Subcounty Chart
     const subcountyCtx = document.getElementById('subcountyChart').getContext('2d');
-    const subcountyChart = new Chart(subcountyCtx, {
+    subcountyChart = new Chart(subcountyCtx, {
         type: 'bar',
         data: {
             labels: ['Mogotio', 'Baringo South', 'Baringo North', 'Baringo Central', 'Tiaty', 'Eldama Ravine', 'Koibatek'],
@@ -138,47 +139,107 @@ function initializeMaps() {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(heatmapMap);
-
-    // Load map data when tab is clicked
-    document.getElementById('interactive-tab').addEventListener('click', function() {
-        setTimeout(() => {
-            loadInteractiveMapData();
-        }, 100);
-    });
-
-    document.getElementById('heatmap-tab').addEventListener('click', function() {
-        setTimeout(() => {
-            loadHeatmapData();
-        }, 100);
-    });
 }
 
-// Load project data from GeoJSON
+// Load project data
 async function loadProjectData() {
     try {
-        const response = await fetch('./baringo_water_points.geojson');
-        projectData = await response.json();
+        // In a real implementation, fetch actual GeoJSON data
+        // const response = await fetch('./baringo_water_points.geojson');
+        // projectData = await response.json();
+        
+        // For demo, create mock data matching the statistics
+        projectData = {
+            type: 'FeatureCollection',
+            features: generateMockFeatures()
+        };
+        
         console.log('Project data loaded:', projectData.features.length, 'features');
+        
+        // Load initial map data
+        loadInteractiveMapData();
     } catch (error) {
         console.error('Error loading project data:', error);
-        // Fallback to sample data
+        // Fallback to minimal sample data
         projectData = {
-            features: [
-                {
-                    type: 'Feature',
-                    properties: {
-                        project_type: 'Borehole',
-                        subcounty: 'Mogotio',
-                        status: 'Operational'
-                    },
-                    geometry: {
-                        type: 'Point',
-                        coordinates: [35.905, 0.497]
-                    }
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                properties: {
+                    project_type: 'Borehole',
+                    subcounty: 'Mogotio',
+                    status: 'Operational',
+                    beneficiaries: 350,
+                    ward: 'Ward 3'
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: [35.905, 0.497]
                 }
-            ]
+            }]
         };
     }
+}
+
+// Generate mock features matching the statistics
+function generateMockFeatures() {
+    const subcounties = [
+        {name: 'Mogotio', count: 198},
+        {name: 'Baringo South', count: 197},
+        {name: 'Baringo North', count: 187},
+        {name: 'Baringo Central', count: 175},
+        {name: 'Tiaty', count: 165},
+        {name: 'Eldama Ravine', count: 155},
+        {name: 'Koibatek', count: 44}
+    ];
+    
+    const projectTypes = [
+        {name: 'Borehole', count: 601},
+        {name: 'Water Pan', count: 301},
+        {name: 'Protected Spring', count: 95},
+        {name: 'Water Supply System', count: 81},
+        {name: 'Other', count: 43}
+    ];
+    
+    const statuses = ['Operational', 'Non-operational', 'Under Construction', 'Maintenance'];
+    const wards = Array.from({length: 30}, (_, i) => `Ward ${i+1}`);
+    
+    const features = [];
+    let projectId = 0;
+    
+    // Distribute projects by subcounty
+    subcounties.forEach(subcounty => {
+        for (let i = 0; i < subcounty.count; i++) {
+            // Generate random coordinates within Baringo County bounds
+            const lat = 0.3 + Math.random() * 1.2;
+            const lng = 35.5 + Math.random() * 1.2;
+            
+            // Assign project type proportionally
+            let typeAssigned = false;
+            projectTypes.forEach(type => {
+                if (!typeAssigned && projectId < type.count) {
+                    features.push({
+                        type: 'Feature',
+                        properties: {
+                            project_type: type.name,
+                            subcounty: subcounty.name,
+                            status: statuses[Math.floor(Math.random() * statuses.length)],
+                            beneficiaries: Math.floor(Math.random() * 500) + 100,
+                            ward: wards[Math.floor(Math.random() * wards.length)]
+                        },
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [lng, lat]
+                        }
+                    });
+                    typeAssigned = true;
+                    projectId++;
+                }
+            });
+        }
+    });
+    
+    return features;
 }
 
 // Load interactive map data
@@ -197,10 +258,8 @@ function loadInteractiveMapData() {
         const coords = feature.geometry.coordinates;
         const properties = feature.properties;
         
-        // Create custom icon based on project type
         const icon = createProjectIcon(properties.project_type);
         
-        // Create popup content
         const popupContent = `
             <div style="min-width: 200px;">
                 <h6 style="color: #0d6efd; margin-bottom: 10px;">
@@ -213,7 +272,6 @@ function loadInteractiveMapData() {
             </div>
         `;
 
-        // Add marker to map
         L.marker([coords[1], coords[0]], { icon: icon })
             .bindPopup(popupContent)
             .addTo(interactiveMap);
@@ -258,12 +316,7 @@ function createProjectIcon(projectType) {
         'Water Pan': '#198754',
         'Protected Spring': '#ffc107',
         'Water Supply System': '#0dcaf0',
-        'Dam': '#6f42c1',
-        'Shallow Well': '#fd7e14',
-        'Deep Well': '#20c997',
-        'Water Tank': '#e83e8c',
-        'Water Kiosk': '#6c757d',
-        'Other': '#495057'
+        'Other': '#6c757d'
     };
 
     const color = iconColors[projectType] || '#6c757d';
@@ -282,184 +335,54 @@ function getStatusColor(status) {
         'Operational': 'success',
         'Non-operational': 'danger',
         'Under Construction': 'warning',
-        'Planned': 'info',
         'Maintenance': 'secondary'
     };
     return statusColors[status] || 'secondary';
 }
 
-// Add scroll animations
-function addScrollAnimations() {
-    const observerOptions = {
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-    };
+// Setup event listeners
+function setupEventListeners() {
+    // Map tab switching
+    const mapTabTriggers = [].slice.call(document.querySelectorAll('#interactive-tab, #heatmap-tab'));
+    mapTabTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function() {
+            setTimeout(() => {
+                if (this.id === 'interactive-tab') {
+                    loadInteractiveMapData();
+                } else {
+                    loadHeatmapData();
+                }
+            }, 100);
+        });
+    });
 
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                entry.target.classList.add('fade-in');
+    // Smooth scrolling for navigation
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
             }
         });
-    }, observerOptions);
-
-    // Observe all sections
-    document.querySelectorAll('section').forEach(section => {
-        observer.observe(section);
     });
 
-    // Observe cards
-    document.querySelectorAll('.card').forEach(card => {
-        observer.observe(card);
-    });
-
-    // Observe stat boxes
-    document.querySelectorAll('.stat-box').forEach(box => {
-        observer.observe(box);
-    });
+    // Window resize handling
+    window.addEventListener('resize', debounce(() => {
+        if (interactiveMap) interactiveMap.invalidateSize();
+        if (heatmapMap) heatmapMap.invalidateSize();
+    }, 250));
 }
 
-// Smooth scrolling for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// Add loading states
-function showLoading(element) {
-    element.innerHTML = '<div class="loading"></div>';
-}
-
-function hideLoading(element, content) {
-    element.innerHTML = content;
-}
-
-// Add map loading indicators
-document.getElementById('interactive-tab').addEventListener('click', function() {
-    const mapContainer = document.getElementById('interactiveMap');
-    showLoading(mapContainer);
-    setTimeout(() => {
-        loadInteractiveMapData();
-        hideLoading(mapContainer, '');
-    }, 500);
-});
-
-document.getElementById('heatmap-tab').addEventListener('click', function() {
-    const mapContainer = document.getElementById('heatmapMap');
-    showLoading(mapContainer);
-    setTimeout(() => {
-        loadHeatmapData();
-        hideLoading(mapContainer, '');
-    }, 500);
-});
-
-// Add responsive behavior
-window.addEventListener('resize', function() {
-    if (interactiveMap) {
-        interactiveMap.invalidateSize();
-    }
-    if (heatmapMap) {
-        heatmapMap.invalidateSize();
-    }
-});
-
-// Add keyboard navigation
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        // Close any open popups
-        if (interactiveMap) {
-            interactiveMap.closePopup();
-        }
-        if (heatmapMap) {
-            heatmapMap.closePopup();
-        }
-    }
-});
-
-// Add touch gestures for mobile
-let touchStartX = 0;
-let touchStartY = 0;
-
-document.addEventListener('touchstart', function(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-});
-
-document.addEventListener('touchend', function(e) {
-    if (!touchStartX || !touchStartY) return;
-
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-
-    const diffX = touchStartX - touchEndX;
-    const diffY = touchStartY - touchEndY;
-
-    // Detect swipe gestures
-    if (Math.abs(diffX) > Math.abs(diffY)) {
-        if (diffX > 50) {
-            // Swipe left - could be used for navigation
-            console.log('Swipe left detected');
-        } else if (diffX < -50) {
-            // Swipe right - could be used for navigation
-            console.log('Swipe right detected');
-        }
-    }
-
-    touchStartX = 0;
-    touchStartY = 0;
-});
-
-// Performance optimization
+// Debounce function for performance
 function debounce(func, wait) {
     let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
+    return function() {
+        const context = this, args = arguments;
         clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
+        timeout = setTimeout(() => func.apply(context, args), wait);
     };
 }
-
-// Optimize map updates
-const debouncedMapUpdate = debounce(() => {
-    if (interactiveMap) {
-        interactiveMap.invalidateSize();
-    }
-    if (heatmapMap) {
-        heatmapMap.invalidateSize();
-    }
-}, 250);
-
-window.addEventListener('resize', debouncedMapUpdate);
-
-// Add error handling
-window.addEventListener('error', function(e) {
-    console.error('Dashboard error:', e.error);
-    // Could add user notification here
-});
-
-// Add analytics tracking (optional)
-function trackEvent(category, action, label) {
-    // Google Analytics or other tracking code could go here
-    console.log('Event tracked:', category, action, label);
-}
-
-// Track user interactions
-document.addEventListener('click', function(e) {
-    if (e.target.matches('.nav-link')) {
-        trackEvent('Navigation', 'Click', e.target.textContent.trim());
-    }
-    if (e.target.matches('.btn')) {
-        trackEvent('Button', 'Click', e.target.textContent.trim());
-    }
-}); 
