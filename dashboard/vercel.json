@@ -19,10 +19,10 @@
       "use": "@vercel/static"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ],
   "headers": [
@@ -44,4 +44,4 @@
       ]
     }
   ]
-} 
+}
