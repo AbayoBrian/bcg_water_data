@@ -119,6 +119,18 @@ function initializeCharts() {
             }
         }
     });
+
+    // Add resize observer for charts
+    const chartObserver = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+            if (projectTypeChart) projectTypeChart.resize();
+            if (subcountyChart) subcountyChart.resize();
+        });
+    });
+
+    document.querySelectorAll('.chart-container').forEach(container => {
+        chartObserver.observe(container);
+    });
 }
 
 // Initialize Leaflet maps
@@ -139,6 +151,20 @@ function initializeMaps() {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
     }).addTo(heatmapMap);
+
+    // Add resize observer for maps
+    const mapObserver = new ResizeObserver(entries => {
+        entries.forEach(entry => {
+            setTimeout(() => {
+                if (interactiveMap) interactiveMap.invalidateSize();
+                if (heatmapMap) heatmapMap.invalidateSize();
+            }, 100);
+        });
+    });
+
+    document.querySelectorAll('.map-container').forEach(container => {
+        mapObserver.observe(container);
+    });
 }
 
 // Load project data
@@ -149,10 +175,7 @@ async function loadProjectData() {
         // projectData = await response.json();
         
         // For demo, create mock data matching the statistics
-        projectData = {
-            type: 'FeatureCollection',
-            features: generateMockFeatures()
-        };
+        projectData = generateMockData();
         
         console.log('Project data loaded:', projectData.features.length, 'features');
         
@@ -181,8 +204,8 @@ async function loadProjectData() {
     }
 }
 
-// Generate mock features matching the statistics
-function generateMockFeatures() {
+// Generate mock data matching the statistics
+function generateMockData() {
     const subcounties = [
         {name: 'Mogotio', count: 198},
         {name: 'Baringo South', count: 197},
@@ -239,7 +262,10 @@ function generateMockFeatures() {
         }
     });
     
-    return features;
+    return {
+        type: 'FeatureCollection',
+        features: features
+    };
 }
 
 // Load interactive map data
@@ -369,20 +395,4 @@ function setupEventListeners() {
             }
         });
     });
-
-    // Window resize handling
-    window.addEventListener('resize', debounce(() => {
-        if (interactiveMap) interactiveMap.invalidateSize();
-        if (heatmapMap) heatmapMap.invalidateSize();
-    }, 250));
-}
-
-// Debounce function for performance
-function debounce(func, wait) {
-    let timeout;
-    return function() {
-        const context = this, args = arguments;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), wait);
-    };
 }
