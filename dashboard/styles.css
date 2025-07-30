@@ -17,7 +17,30 @@ body {
     color: #333;
     padding-top: 56px; /* For fixed navbar */
 }
+/* Add to your styles.css */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    min-height: 300px;
+}
 
+#projectTypeChart, #subcountyChart {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+.card-body {
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.card {
+    min-height: 400px;
+}
 .section-title {
     color: var(--dark-color);
     font-weight: 700;
