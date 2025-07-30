@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baringo Water Resource Mapping Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-water me-2"></i>
+                Baringo Water Resource Mapping
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#overview">Overview</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#statistics">Statistics</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#maps">Maps</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#analysis">Analysis</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center min-vh-100">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold text-white mb-4">
+                        Baringo County Water Resource Mapping
+                    </h1>
+                    <p class="lead text-white-50 mb-4">
+                        Comprehensive analysis of 1,121 water projects across 7 subcounties, 
+                        providing insights into water infrastructure distribution and spatial patterns.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#overview" class="btn btn-light btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Explore Data
+                        </a>
+                        <a href="#maps" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-map me-2"></i>View Maps
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hero-stats">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <h3>1,121</h3>
+                                    <p>Total Projects</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <h3>7</h3>
+                                    <p>Subcounties</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <h3>30</h3>
+                                    <p>Wards</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-card">
+                                    <h3>10</h3>
+                                    <p>Project Types</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Project Overview</h2>
+                    <p class="lead">Comprehensive water resource mapping across Baringo County</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-pie text-primary me-2"></i>
+                                Project Type Distribution
+                            </h5>
+                            <canvas id="projectTypeChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-bar text-primary me-2"></i>
+                                Projects by Subcounty
+                            </h5>
+                            <canvas id="subcountyChart" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section id="statistics" class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Key Statistics</h2>
+                    <p class="lead">Spatial analysis and infrastructure insights</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-ruler-combined"></i>
+                        </div>
+                        <h3>1.07 km</h3>
+                        <p>Mean Nearest Neighbor Distance</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h3>3</h3>
+                        <p>Spatial Clusters Identified</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <h3>48%</h3>
+                        <p>Buffer Coverage Area</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-box text-center">
+                        <div class="stat-icon">
+                            <i class="fas fa-map-marked-alt"></i>
+                        </div>
+                        <h3>19,150 km²</h3>
+                        <p>Total Spatial Coverage</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Maps Section -->
+    <section id="maps" class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Interactive Maps</h2>
+                    <p class="lead">Explore water projects and spatial patterns</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <ul class="nav nav-tabs card-header-tabs" id="mapTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="interactive-tab" data-bs-toggle="tab" data-bs-target="#interactive" type="button" role="tab">
+                                        <i class="fas fa-map-marker-alt me-2"></i>Interactive Map
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="heatmap-tab" data-bs-toggle="tab" data-bs-target="#heatmap" type="button" role="tab">
+                                        <i class="fas fa-fire me-2"></i>Heatmap
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content" id="mapTabsContent">
+                                <div class="tab-pane fade show active" id="interactive" role="tabpanel">
+                                    <div id="interactiveMap" style="height: 600px;"></div>
+                                </div>
+                                <div class="tab-pane fade" id="heatmap" role="tabpanel">
+                                    <div id="heatmapMap" style="height: 600px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Section -->
+    <section id="analysis" class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="section-title">Spatial Analysis</h2>
+                    <p class="lead">Advanced GIS analysis and insights</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-chart-line text-primary me-2"></i>
+                                Spatial Distribution Analysis
+                            </h5>
+                            <div class="analysis-content">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Key Findings:</h6>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Good coverage across county (1.07km avg spacing)</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Three distinct clusters identified</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>48% buffer coverage indicates substantial service area</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Balanced distribution across subcounties</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Infrastructure Patterns:</h6>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-circle text-primary me-2"></i>Boreholes dominate (53.6%)</li>
+                                            <li><i class="fas fa-circle text-success me-2"></i>Water pans provide coverage (26.9%)</li>
+                                            <li><i class="fas fa-circle text-warning me-2"></i>Protected springs sustainable (8.5%)</li>
+                                            <li><i class="fas fa-circle text-info me-2"></i>Water supply systems serve communities (7.2%)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                Project Details
+                            </h5>
+                            <div class="project-details">
+                                <div class="detail-item">
+                                    <strong>Total Projects:</strong> 1,121
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Project Types:</strong> 10
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Subcounties:</strong> 7
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Wards:</strong> 30
+                                </div>
+                                <div class="detail-item">
+                                    <strong>Coverage Area:</strong> 19,150 km²
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Baringo Water Resource Mapping</h5>
+                    <p class="mb-0">Comprehensive analysis of water infrastructure across Baringo County</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>
+                        Analysis Date: 2024
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-database me-2"></i>
+                        Total Records: 1,121
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet Heatmap Plugin -->
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html> 
