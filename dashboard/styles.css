@@ -1,4 +1,4 @@
-/* Baringo Water Resource Mapping Dashboard - Enhanced CSS */
+/* Custom CSS for Baringo Water Resource Mapping Dashboard */
 
 :root {
     --primary-color: #0d6efd;
@@ -8,7 +8,6 @@
     --info-color: #0dcaf0;
     --light-color: #f8f9fa;
     --dark-color: #212529;
-    --map-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Global Styles */
@@ -16,92 +15,34 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: #333;
-    padding-top: 56px;
+    padding-top: 56px; /* For fixed navbar */
 }
 
 .section-title {
     color: var(--dark-color);
     font-weight: 700;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     position: relative;
+    display: inline-block;
 }
 
 .section-title::after {
     content: '';
     position: absolute;
     bottom: -10px;
-    left: 0;
+    left: 50%;
+    transform: translateX(-50%);
     width: 60px;
     height: 4px;
     background: var(--primary-color);
     border-radius: 2px;
 }
 
-/* Enhanced Map Containers */
-.map-container {
-    height: 500px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: var(--map-shadow);
-    background: #f8f9fa;
-    position: relative;
-}
-
-#interactiveMap, #heatmapMap {
-    width: 100%;
-    height: 100%;
-    transition: all 0.3s ease;
-}
-
-/* Map Controls */
-.leaflet-control-container .leaflet-control {
-    box-shadow: var(--map-shadow);
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.leaflet-control-zoom {
-    border: none !important;
-}
-
-.leaflet-control-zoom a {
-    background-color: white;
-    color: var(--primary-color);
-    border-bottom: 1px solid #eee !important;
-    transition: all 0.2s ease;
-}
-
-.leaflet-control-zoom a:hover {
-    background-color: var(--primary-color);
-    color: white;
-}
-
-/* Map Popups */
-.leaflet-popup-content-wrapper {
-    border-radius: 10px !important;
-    box-shadow: var(--map-shadow);
-    padding: 0;
-}
-
-.leaflet-popup-content {
-    margin: 0;
-    width: auto !important;
-    min-width: 200px;
-}
-
-/* Map Markers */
-.custom-marker {
-    transition: transform 0.2s ease;
-}
-
-.custom-marker:hover {
-    transform: scale(1.2);
-    z-index: 1000 !important;
-}
-
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0d6efd 0%, #0b5ed7 100%);
+    color: white;
+    padding: 6rem 0;
     position: relative;
     overflow: hidden;
 }
@@ -113,7 +54,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" stroke-dasharray="5,5"/></svg>');
+    background-size: 20px 20px;
     opacity: 0.3;
 }
 
@@ -121,118 +63,255 @@ body {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     border-radius: 15px;
-    padding: 2rem;
+    padding: 1.5rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Cards & Statistics (unchanged) */
+.stat-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    padding: 1.25rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card h3 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+}
+
+.stat-card p {
+    color: var(--secondary-color);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Chart Containers - FIX FOR OVERFLOW ISSUE */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+    min-height: 300px;
+}
+
+#projectTypeChart, #subcountyChart {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* Cards */
 .card {
     border: none;
     border-radius: 15px;
-    box-shadow: var(--map-shadow);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
+    margin-bottom: 1.5rem;
+    min-height: 400px; /* Ensure consistent height */
 }
 
 .card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-5px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
 
+.card-body {
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.card-header {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 15px 15px 0 0 !important;
+    padding: 1rem 1.5rem;
+}
+
+.card-header-tabs {
+    border-bottom: none;
+}
+
+.card-header-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 8px;
+    margin-right: 0.5rem;
+    padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.card-header-tabs .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.card-header-tabs .nav-link.active {
+    color: var(--primary-color);
+    background: white;
+    font-weight: 600;
+}
+
+/* Statistics Boxes */
 .stat-box {
     background: white;
     border-radius: 15px;
-    padding: 2rem;
-    box-shadow: var(--map-shadow);
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    height: 100%;
+    text-align: center;
 }
 
-/* Loading States */
-.loading-container {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(255, 255, 255, 0.8);
+.stat-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), #0b5ed7);
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000;
-    border-radius: 10px;
+    margin: 0 auto 1rem;
+    color: white;
+    font-size: 1.5rem;
 }
 
-.loading {
-    display: inline-block;
-    width: 30px;
-    height: 30px;
-    border: 3px solid rgba(13, 110, 253, 0.3);
-    border-radius: 50%;
-    border-top-color: var(--primary-color);
-    animation: spin 1s ease-in-out infinite;
+.stat-box h3 {
+    color: var(--dark-color);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.75rem;
+}
+
+.stat-box p {
+    color: var(--secondary-color);
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Map Containers */
+.map-container {
+    height: 500px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    background: #f8f9fa;
+}
+
+/* Analysis Content */
+.analysis-content {
+    padding: 1rem 0;
+}
+
+.analysis-content h6 {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid var(--light-color);
+    padding-bottom: 0.5rem;
+}
+
+.analysis-content ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.analysis-content ul li {
+    margin-bottom: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.analysis-content ul li:last-child {
+    border-bottom: none;
+}
+
+/* Project Details */
+.project-details {
+    padding: 1rem 0;
+}
+
+.detail-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item strong {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* Footer */
+footer {
+    background: var(--dark-color);
+    color: white;
+    padding: 2rem 0;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .map-container {
-        height: 400px;
-    }
-    
     .hero-section {
+        padding: 4rem 0;
         text-align: center;
     }
     
     .hero-stats {
         margin-top: 2rem;
     }
+    
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+    
+    .display-4 {
+        font-size: 2.5rem;
+    }
+    
+    .lead {
+        font-size: 1rem;
+    }
+
+    .card {
+        min-height: auto;
+    }
 }
 
 @media (max-width: 576px) {
-    .map-container {
-        height: 350px;
-    }
-    
     .container {
         padding-left: 1rem;
         padding-right: 1rem;
     }
-}
-
-/* Animation Classes */
-.fade-in {
-    animation: fadeIn 0.6s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+    
+    .stat-card h3 {
+        font-size: 1.5rem;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
     }
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #0056b3;
 }
