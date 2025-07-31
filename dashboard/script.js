@@ -1,4 +1,4 @@
-// Baringo Water Resource Mapping Dashboard JavaScript
+// Baringo Water Resource Mapping Dashboard - Complete JavaScript
 
 // Global variables
 let interactiveMap, heatmapMap;
@@ -11,6 +11,20 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeMaps();
     loadProjectData();
     setupEventListeners();
+    
+    // Initialize map tabs
+    const mapTabTriggers = [].slice.call(document.querySelectorAll('#interactive-tab, #heatmap-tab'));
+    mapTabTriggers.forEach(function(trigger) {
+        trigger.addEventListener('click', function(event) {
+            event.preventDefault();
+            const target = this.getAttribute('href');
+            if (target === '#interactive') {
+                setTimeout(loadInteractiveMapData, 300);
+            } else if (target === '#heatmap') {
+                setTimeout(loadHeatmapData, 300);
+            }
+        });
+    });
 });
 
 // Initialize Chart.js charts
@@ -133,20 +147,30 @@ function initializeCharts() {
     });
 }
 
-// Initialize Leaflet maps
+// Initialize Leaflet maps with improved interactive map
 function initializeMaps() {
-    // Interactive Map
-    interactiveMap = L.map('interactiveMap').setView([0.497, 35.905], 9);
-    
-    // Add OpenStreetMap tiles
+    // Interactive Map with better controls
+    interactiveMap = L.map('interactiveMap', {
+        center: [0.497, 35.905],
+        zoom: 9,
+        zoomControl: false,
+        preferCanvas: true // Better performance for many markers
+    });
+
+    // Add OpenStreetMap tiles with better contrast
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
+        maxZoom: 19,
+        detectRetina: true
     }).addTo(interactiveMap);
 
-    // Heatmap Map
+    // Add custom zoom control
+    L.control.zoom({
+        position: 'topright'
+    }).addTo(interactiveMap);
+
+    // Heatmap Map (unchanged)
     heatmapMap = L.map('heatmapMap').setView([0.497, 35.905], 9);
-    
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
         maxZoom: 19
@@ -167,23 +191,20 @@ function initializeMaps() {
     });
 }
 
-// Load project data
+// Load project data with enhanced mock data
 async function loadProjectData() {
     try {
-        // In a real implementation, fetch actual GeoJSON data
-        // const response = await fetch('./baringo_water_points.geojson');
-        // projectData = await response.json();
-        
-        // For demo, create mock data matching the statistics
-        projectData = generateMockData();
+        // For demo purposes, we'll create enhanced mock data
+        projectData = {
+            type: 'FeatureCollection',
+            features: generateEnhancedMockData()
+        };
         
         console.log('Project data loaded:', projectData.features.length, 'features');
-        
-        // Load initial map data
         loadInteractiveMapData();
     } catch (error) {
         console.error('Error loading project data:', error);
-        // Fallback to minimal sample data
+        // Fallback to sample data with visible marker
         projectData = {
             type: 'FeatureCollection',
             features: [{
@@ -193,7 +214,9 @@ async function loadProjectData() {
                     subcounty: 'Mogotio',
                     status: 'Operational',
                     beneficiaries: 350,
-                    ward: 'Ward 3'
+                    ward: 'Ward 3',
+                    color: '#0d6efd',
+                    icon: 'fa-water'
                 },
                 geometry: {
                     type: 'Point',
@@ -204,24 +227,24 @@ async function loadProjectData() {
     }
 }
 
-// Generate mock data matching the statistics
-function generateMockData() {
+// Enhanced mock data generator with clustered distribution
+function generateEnhancedMockData() {
     const subcounties = [
-        {name: 'Mogotio', count: 198},
-        {name: 'Baringo South', count: 197},
-        {name: 'Baringo North', count: 187},
-        {name: 'Baringo Central', count: 175},
-        {name: 'Tiaty', count: 165},
-        {name: 'Eldama Ravine', count: 155},
-        {name: 'Koibatek', count: 44}
+        {name: 'Mogotio', count: 198, center: [0.3, 35.8], spread: 0.2},
+        {name: 'Baringo South', count: 197, center: [0.1, 35.9], spread: 0.15},
+        {name: 'Baringo North', count: 187, center: [0.7, 35.7], spread: 0.25},
+        {name: 'Baringo Central', count: 175, center: [0.5, 35.6], spread: 0.3},
+        {name: 'Tiaty', count: 165, center: [0.8, 36.1], spread: 0.4},
+        {name: 'Eldama Ravine', count: 155, center: [0.2, 35.5], spread: 0.2},
+        {name: 'Koibatek', count: 44, center: [0.4, 36.0], spread: 0.1}
     ];
     
     const projectTypes = [
-        {name: 'Borehole', count: 601},
-        {name: 'Water Pan', count: 301},
-        {name: 'Protected Spring', count: 95},
-        {name: 'Water Supply System', count: 81},
-        {name: 'Other', count: 43}
+        {name: 'Borehole', count: 601, color: '#0d6efd', icon: 'fa-water'},
+        {name: 'Water Pan', count: 301, color: '#198754', icon: 'fa-tint'},
+        {name: 'Protected Spring', count: 95, color: '#ffc107', icon: 'fa-umbrella'},
+        {name: 'Water Supply System', count: 81, color: '#0dcaf0', icon: 'fa-network-wired'},
+        {name: 'Other', count: 43, color: '#6c757d', icon: 'fa-circle'}
     ];
     
     const statuses = ['Operational', 'Non-operational', 'Under Construction', 'Maintenance'];
@@ -230,17 +253,15 @@ function generateMockData() {
     const features = [];
     let projectId = 0;
     
-    // Distribute projects by subcounty
     subcounties.forEach(subcounty => {
         for (let i = 0; i < subcounty.count; i++) {
-            // Generate random coordinates within Baringo County bounds
-            const lat = 0.3 + Math.random() * 1.2;
-            const lng = 35.5 + Math.random() * 1.2;
+            // Generate coordinates clustered around subcounty center
+            const lat = subcounty.center[0] + (Math.random() - 0.5) * subcounty.spread;
+            const lng = subcounty.center[1] + (Math.random() - 0.5) * subcounty.spread;
             
             // Assign project type proportionally
-            let typeAssigned = false;
             projectTypes.forEach(type => {
-                if (!typeAssigned && projectId < type.count) {
+                if (projectId < type.count) {
                     features.push({
                         type: 'Feature',
                         properties: {
@@ -248,63 +269,98 @@ function generateMockData() {
                             subcounty: subcounty.name,
                             status: statuses[Math.floor(Math.random() * statuses.length)],
                             beneficiaries: Math.floor(Math.random() * 500) + 100,
-                            ward: wards[Math.floor(Math.random() * wards.length)]
+                            ward: wards[Math.floor(Math.random() * wards.length)],
+                            color: type.color,
+                            icon: type.icon
                         },
                         geometry: {
                             type: 'Point',
                             coordinates: [lng, lat]
                         }
                     });
-                    typeAssigned = true;
                     projectId++;
                 }
             });
         }
     });
     
-    return {
-        type: 'FeatureCollection',
-        features: features
-    };
+    return features;
 }
 
-// Load interactive map data
+// Improved interactive map data loading
 function loadInteractiveMapData() {
-    if (!projectData) return;
+    if (!projectData || !interactiveMap) return;
 
-    // Clear existing layers
-    interactiveMap.eachLayer((layer) => {
-        if (layer instanceof L.Marker || layer instanceof L.CircleMarker) {
+    // Clear existing layers except base layer
+    interactiveMap.eachLayer(layer => {
+        if (layer instanceof L.Marker || layer instanceof L.FeatureGroup) {
             interactiveMap.removeLayer(layer);
         }
     });
 
-    // Add markers for each project
+    // Create feature group for better performance
+    const featureGroup = L.featureGroup().addTo(interactiveMap);
+
+    // Add markers for each project with improved styling
     projectData.features.forEach(feature => {
         const coords = feature.geometry.coordinates;
-        const properties = feature.properties;
+        const props = feature.properties;
         
-        const icon = createProjectIcon(properties.project_type);
-        
+        // Create custom icon with better visibility
+        const icon = L.divIcon({
+            html: `<div style="background-color: ${props.color || '#0d6efd'}; 
+                   width: 16px; height: 16px; border-radius: 50%; 
+                   border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+                   display: flex; align-items: center; justify-content: center;">
+                   <i class="fas ${props.icon || 'fa-water'} text-white" style="font-size: 8px;"></i></div>`,
+            className: 'custom-marker',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        });
+
+        // Create popup with better formatting
         const popupContent = `
-            <div style="min-width: 200px;">
-                <h6 style="color: #0d6efd; margin-bottom: 10px;">
-                    <i class="fas fa-water me-2"></i>${properties.project_type || 'Water Project'}
+            <div style="min-width: 200px; font-family: 'Segoe UI', sans-serif;">
+                <h6 style="color: ${props.color || '#0d6efd'}; margin-bottom: 10px; font-weight: 600;">
+                    <i class="fas ${props.icon || 'fa-water'} me-2"></i>${props.project_type}
                 </h6>
-                <p><strong>Subcounty:</strong> ${properties.subcounty || 'N/A'}</p>
-                <p><strong>Status:</strong> <span class="badge bg-${getStatusColor(properties.status)}">${properties.status || 'Unknown'}</span></p>
-                ${properties.beneficiaries ? `<p><strong>Beneficiaries:</strong> ${properties.beneficiaries}</p>` : ''}
-                ${properties.ward ? `<p><strong>Ward:</strong> ${properties.ward}</p>` : ''}
+                <div style="margin-bottom: 8px;">
+                    <span style="display: inline-block; width: 100px; color: #6c757d;">Subcounty:</span>
+                    <strong>${props.subcounty || 'N/A'}</strong>
+                </div>
+                <div style="margin-bottom: 8px;">
+                    <span style="display: inline-block; width: 100px; color: #6c757d;">Status:</span>
+                    <span class="badge bg-${getStatusColor(props.status)}">${props.status || 'Unknown'}</span>
+                </div>
+                ${props.beneficiaries ? `
+                <div style="margin-bottom: 8px;">
+                    <span style="display: inline-block; width: 100px; color: #6c757d;">Beneficiaries:</span>
+                    <strong>${props.beneficiaries}</strong>
+                </div>` : ''}
+                ${props.ward ? `
+                <div style="margin-bottom: 8px;">
+                    <span style="display: inline-block; width: 100px; color: #6c757d;">Ward:</span>
+                    <strong>${props.ward}</strong>
+                </div>` : ''}
             </div>
         `;
 
-        L.marker([coords[1], coords[0]], { icon: icon })
-            .bindPopup(popupContent)
-            .addTo(interactiveMap);
+        const marker = L.marker([coords[1], coords[0]], { icon: icon })
+            .bindPopup(popupContent);
+        
+        featureGroup.addLayer(marker);
     });
+
+    // Fit map to show all markers with padding
+    if (projectData.features.length > 0) {
+        interactiveMap.fitBounds(featureGroup.getBounds(), {
+            padding: [50, 50],
+            maxZoom: 9
+        });
+    }
 }
 
-// Load heatmap data
+// Load heatmap data (unchanged)
 function loadHeatmapData() {
     if (!projectData) return;
 
@@ -335,26 +391,6 @@ function loadHeatmapData() {
     }).addTo(heatmapMap);
 }
 
-// Create custom icon for project types
-function createProjectIcon(projectType) {
-    const iconColors = {
-        'Borehole': '#0d6efd',
-        'Water Pan': '#198754',
-        'Protected Spring': '#ffc107',
-        'Water Supply System': '#0dcaf0',
-        'Other': '#6c757d'
-    };
-
-    const color = iconColors[projectType] || '#6c757d';
-    
-    return L.divIcon({
-        html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-        className: 'custom-marker',
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
-    });
-}
-
 // Get status color for badges
 function getStatusColor(status) {
     const statusColors = {
@@ -368,21 +404,7 @@ function getStatusColor(status) {
 
 // Setup event listeners
 function setupEventListeners() {
-    // Map tab switching
-    const mapTabTriggers = [].slice.call(document.querySelectorAll('#interactive-tab, #heatmap-tab'));
-    mapTabTriggers.forEach(trigger => {
-        trigger.addEventListener('click', function() {
-            setTimeout(() => {
-                if (this.id === 'interactive-tab') {
-                    loadInteractiveMapData();
-                } else {
-                    loadHeatmapData();
-                }
-            }, 100);
-        });
-    });
-
-    // Smooth scrolling for navigation
+    // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -395,4 +417,20 @@ function setupEventListeners() {
             }
         });
     });
+
+    // Window resize handling with debounce
+    window.addEventListener('resize', debounce(() => {
+        if (interactiveMap) interactiveMap.invalidateSize();
+        if (heatmapMap) heatmapMap.invalidateSize();
+    }, 250));
+}
+
+// Debounce function for performance
+function debounce(func, wait) {
+    let timeout;
+    return function() {
+        const context = this, args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), wait);
+    };
 }
