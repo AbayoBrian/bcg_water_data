@@ -9,22 +9,9 @@ let projectTypeChart, subcountyChart;
 document.addEventListener('DOMContentLoaded', function() {
     initializeCharts();
     initializeMaps();
+    addScrollAnimations();
     loadProjectData();
     setupEventListeners();
-    
-    // Initialize map tabs
-    const mapTabTriggers = [].slice.call(document.querySelectorAll('#interactive-tab, #heatmap-tab'));
-    mapTabTriggers.forEach(function(trigger) {
-        trigger.addEventListener('click', function(event) {
-            event.preventDefault();
-            const target = this.getAttribute('href');
-            if (target === '#interactive') {
-                setTimeout(loadInteractiveMapData, 300);
-            } else if (target === '#heatmap') {
-                setTimeout(loadHeatmapData, 300);
-            }
-        });
-    });
 });
 
 // Initialize Chart.js charts
@@ -147,7 +134,7 @@ function initializeCharts() {
     });
 }
 
-// Initialize Leaflet maps with improved interactive map
+// Initialize Leaflet maps with enhanced interactive map
 function initializeMaps() {
     // Interactive Map with better controls
     interactiveMap = L.map('interactiveMap', {
@@ -169,7 +156,7 @@ function initializeMaps() {
         position: 'topright'
     }).addTo(interactiveMap);
 
-    // Heatmap Map (unchanged)
+    // Heatmap Map
     heatmapMap = L.map('heatmapMap').setView([0.497, 35.905], 9);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors',
@@ -191,7 +178,7 @@ function initializeMaps() {
     });
 }
 
-// Load project data with enhanced mock data
+// Enhanced project data loading
 async function loadProjectData() {
     try {
         // For demo purposes, we'll create enhanced mock data
@@ -360,7 +347,7 @@ function loadInteractiveMapData() {
     }
 }
 
-// Load heatmap data (unchanged)
+// Load heatmap data
 function loadHeatmapData() {
     if (!projectData) return;
 
@@ -402,9 +389,57 @@ function getStatusColor(status) {
     return statusColors[status] || 'secondary';
 }
 
+// Add scroll animations
+function addScrollAnimations() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+
+    // Observe all sections
+    document.querySelectorAll('section').forEach(section => {
+        observer.observe(section);
+    });
+
+    // Observe cards
+    document.querySelectorAll('.card').forEach(card => {
+        observer.observe(card);
+    });
+
+    // Observe stat boxes
+    document.querySelectorAll('.stat-box').forEach(box => {
+        observer.observe(box);
+    });
+}
+
 // Setup event listeners
 function setupEventListeners() {
-    // Smooth scrolling for navigation links
+    // Map tab switching
+    const mapTabTriggers = [].slice.call(document.querySelectorAll('#interactive-tab, #heatmap-tab'));
+    mapTabTriggers.forEach(trigger => {
+        trigger.addEventListener('click', function() {
+            const mapContainer = document.getElementById(this.id === 'interactive-tab' ? 'interactiveMap' : 'heatmapMap');
+            showLoading(mapContainer);
+            setTimeout(() => {
+                if (this.id === 'interactive-tab') {
+                    loadInteractiveMapData();
+                } else {
+                    loadHeatmapData();
+                }
+                hideLoading(mapContainer, '');
+            }, 500);
+        });
+    });
+
+    // Smooth scrolling for navigation
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -425,6 +460,15 @@ function setupEventListeners() {
     }, 250));
 }
 
+// Add loading states
+function showLoading(element) {
+    element.innerHTML = '<div class="loading"></div>';
+}
+
+function hideLoading(element, content) {
+    element.innerHTML = content;
+}
+
 // Debounce function for performance
 function debounce(func, wait) {
     let timeout;
@@ -434,3 +478,57 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(context, args), wait);
     };
 }
+
+// Add keyboard navigation
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (interactiveMap) interactiveMap.closePopup();
+        if (heatmapMap) heatmapMap.closePopup();
+    }
+});
+
+// Add touch gestures for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+});
+
+document.addEventListener('touchend', function(e) {
+    if (!touchStartX || !touchStartY) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+
+    const diffX = touchStartX - touchEndX;
+    const diffY = touchStartY - touchEndY;
+
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (diffX > 50) console.log('Swipe left detected');
+        else if (diffX < -50) console.log('Swipe right detected');
+    }
+
+    touchStartX = 0;
+    touchStartY = 0;
+});
+
+// Error handling
+window.addEventListener('error', function(e) {
+    console.error('Dashboard error:', e.error);
+});
+
+// Analytics tracking (optional)
+function trackEvent(category, action, label) {
+    console.log('Event tracked:', category, action, label);
+}
+
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.nav-link')) {
+        trackEvent('Navigation', 'Click', e.target.textContent.trim());
+    }
+    if (e.target.matches('.btn')) {
+        trackEvent('Button', 'Click', e.target.textContent.trim());
+    }
+});
